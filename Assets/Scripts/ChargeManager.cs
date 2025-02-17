@@ -1,11 +1,14 @@
 using System.Collections;
 using System.Collections.Generic;
+using Unity.VisualScripting;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class ChargeManager : MonoBehaviour
 {
     public LineRenderer straightLineRenderer;
     public LineRenderer gravityLineRenderer;
+    public Button ultButton;
     public Transform moverObject;
     public GameObject greyScreen;
     public float straightSpeed = 50f;  // 직선 속도
@@ -26,9 +29,11 @@ public class ChargeManager : MonoBehaviour
     private bool isClickable = true;
     private float reflectionTime = 0;
     GameObject activeTarget;
+    private bool isUltButtonClicked=false;
 
     void Start()
     {
+        ultButton.onClick.AddListener(OnButtonClicked);
         greyScreen.SetActive(false);
         straightLineRenderer.positionCount = 0;
         gravityLineRenderer.positionCount = 0;
@@ -156,4 +161,5 @@ public class ChargeManager : MonoBehaviour
         gravityLineRenderer.positionCount = gravityPoints.Count;
         gravityLineRenderer.SetPositions(gravityPoints.ToArray());
     }
+    public void OnButtonClicked(){}
 }
