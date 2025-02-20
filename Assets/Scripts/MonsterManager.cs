@@ -13,6 +13,8 @@ public class MonsterManager : MonoBehaviour
     public float c=1;
     public float bossTime=60f;
     float currentTime;
+    public GameObject dmgEffectPrefab;
+    public GameObject monsterPosArrowPrefab;
 
     // Start is called before the first frame update
     void Start()

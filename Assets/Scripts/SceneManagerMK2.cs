@@ -45,13 +45,14 @@ public class SceneManagerMK2 : MonoBehaviour
     private bool isHit;
     private int damage=0;
     public bool isInvulnerability=false;
-    int invulnerabilityFrame=0;
+    // int invulnerabilityFrame=0;
     RaycastHit2D hit;
     RotateKidian rotateKidian;
     KidianController kidianController;
     
     int ultCounter=0;
     public bool canUlt=false;
+    private bool usedUltPrevious=false;
     void Start(){
         currentTime=0;
         hitTime=0;
@@ -82,7 +83,15 @@ public class SceneManagerMK2 : MonoBehaviour
                 reflectRotationSpeedVector=Vector3.zero;
                 currentState="SkillReadyLoop";
                 currentTime=0;
-                SetAnimation("charge");
+                if(usedUltPrevious){
+                    usedUltPrevious=false;
+                    ultCounter=0;
+                    UpdateUlt();
+                }
+                if(activeTarget!=null){
+                    activeTarget.GetComponent<CapsuleCollider2D>().enabled = true;
+                }
+                SetAnimation("Charge");
             }break;
 
             case "SkillReadyLoop":{//스킬 차징 중
@@ -105,14 +114,17 @@ public class SceneManagerMK2 : MonoBehaviour
                 kidianController.chargeEffectPre.SetActive(false);
                 kidianController.chargeEffect.SetActive(true);
                 isInvulnerability=true;
-                invulnerabilityFrame=0;
+                // invulnerabilityFrame=0;
+                if(activeTarget!=null){
+                    activeTarget.GetComponent<CapsuleCollider2D>().enabled = false;
+                }
                 Time.timeScale = 1f;
                 greyScreen.SetActive(false);
                 oldReflectionDirection=reflectionDirection;
                 currentState="SkillLoop";
                 currentTime=0;
                 damage=1;
-                SetAnimation("fly");
+                SetAnimation("Fly");
                 rotateKidian.RotateToMouseInstant();
             }break;
 
@@ -137,6 +149,13 @@ public class SceneManagerMK2 : MonoBehaviour
 
             case"UltReady":{//궁 시전 준비비
                 SetKidianTransparency(0f);
+                ultCounter=0;
+                canUlt=false;
+                usedUltPrevious=true;
+                ultFillButton.GetComponent<Image>().fillAmount=ultCounter/8f;
+                if(activeTarget!=null){
+                    activeTarget.GetComponent<CapsuleCollider2D>().enabled = true;
+                }
                 isInvulnerability=true;
                 Time.timeScale = 0.025f;
                 currentState="UltReadyLoop";
@@ -158,7 +177,9 @@ public class SceneManagerMK2 : MonoBehaviour
             case"Ult":{//궁 발사!
                 SetKidianTransparency(1f);
                 kidianController.chargeEffectPre.SetActive(false);
-
+                if(activeTarget!=null){
+                    activeTarget.GetComponent<CapsuleCollider2D>().enabled = false;
+                }
                 GameObject ultWindEffect = Instantiate(kidianController.ultWindEffect);
                 ultWindEffect.transform.position = new Vector3(Camera.main.ScreenToWorldPoint(Input.mousePosition).x,25,1.5f);
                 ultWindEffect.transform.localScale = new Vector3(3, 3,1);
@@ -178,13 +199,13 @@ public class SceneManagerMK2 : MonoBehaviour
                     ultEffect.transform.localScale = new Vector3(3,15f,1);
                 }
                 isInvulnerability=true;
-                invulnerabilityFrame=0;
+                // invulnerabilityFrame=0;
                 Time.timeScale = 1f;
                 greyScreen.SetActive(false);
                 oldReflectionDirection=reflectionDirection;
                 currentState="UltLoop";
                 currentTime=0;
-                SetAnimation("fly");
+                SetAnimation("Ult");
                 
                 rotateKidian.RotateToMouseInstant();
 
@@ -214,7 +235,7 @@ public class SceneManagerMK2 : MonoBehaviour
             }break;
 
             case"Reflected":{//반사 또는 스킬궁 끝난 후에 일어나는 일
-                SetAnimation("spin");
+                SetAnimation("Spin");
                 if(direction.x>0){
                     kidianObj.transform.Rotate(0,0,-90);
                 }else{
@@ -229,6 +250,7 @@ public class SceneManagerMK2 : MonoBehaviour
                         UltControll(false);
                     }
                 }
+                isInvulnerability=false;
                 currentState="ReflectedLoop";
                 currentTime=0;
             }break;
@@ -237,10 +259,10 @@ public class SceneManagerMK2 : MonoBehaviour
                 // if(currentTime>invulnerabilityTime){
                 //     isInvulnerability=false;
                 // }
-                invulnerabilityFrame+=1;
-                if(invulnerabilityFrame==18){
-                    isInvulnerability=false;
-                }
+                // invulnerabilityFrame+=1;
+                // if(invulnerabilityFrame==18){
+                    // isInvulnerability=false;
+                // }
                 kidianController.chargeEffect.SetActive(false);
 
                 MoveKidian();
@@ -276,11 +298,16 @@ public class SceneManagerMK2 : MonoBehaviour
             ultCounter=8;
         }
         ultCounter+=damage;
+        UpdateUlt();
+    }
+    void UpdateUlt(){
         if(ultCounter>8){
             ultCounter=8;
         }
         if(ultCounter>=8){
             canUlt=true;
+        }else{
+            canUlt=false;
         }
         ultFillButton.GetComponent<Image>().fillAmount=ultCounter/8f;
     }
