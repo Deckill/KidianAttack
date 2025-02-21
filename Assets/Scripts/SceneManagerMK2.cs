@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using Unity.VisualScripting;
+using UnityEngine.EventSystems;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -11,24 +12,34 @@ public class SceneManagerMK2 : MonoBehaviour
     public LineRenderer gravityLineRenderer;
     public GameObject debugObj1;
     public GameObject debugObj2;
-    public string currentState;
     public GameObject kidian;
     public GameObject kidianObj;
     public GameObject greyScreen;
     public GameObject ultFillButton;
-    public float rotationSpeedMultiplier;
-    public float straightSkillSpeed = 50f;  // 직선 속도
-    public float straightUltSpeed = 150f;  // 직선 속도
-    public float gravitySpeed = 15f;    // 반사 후 시작 속도
-    public float gravity = -9.8f;      // 중력 가속도
-    public float maxSkillDistance = 15f;    // 최대 거리
-    public float maxUltDistance = 100f;
+    public GameObject monsterController;
     public LayerMask targetLayer;      // 타겟 레이어
+    public GameObject activeTarget;
+    public MainMenuScript mainMenuScript;
+    public GraphicRaycaster uiRaycaster; // UI의 GraphicRaycaster 연결 필요
+    private PointerEventData pointerEventData;
+    public float currentTime;
+    public float hitTime;
+    public string currentState;
 
     public int score=0;
-    public int jibMunSeoHealth=5;
+    public bool isInvulnerability=false;
 
-    public float invulnerabilityTime = 0.1f;
+    public bool isHardMode=false;
+    public bool canUlt=false;
+    private bool usedUltPrevious=false;
+    private float rotationSpeedMultiplier;
+    private float straightSkillSpeed = 50f;  // 직선 속도
+    private float straightUltSpeed = 150f;  // 직선 속도
+    private float gravitySpeed = 15f;    // 반사 후 시작 속도
+    private float gravity = -9.8f;      // 중력 가속도
+    private float maxSkillDistance = 15f;  
+    // public float maxMaxSkillDistance = 15f;  // 최대 거리
+    private float maxUltDistance = 10000f;
 
     private Vector3 initialVelocity; //시작 속도도
     private Vector3 reflectionPoint; //
@@ -39,20 +50,15 @@ public class SceneManagerMK2 : MonoBehaviour
     private Vector3 startPos;
     private Vector3 mousePos;
     private Vector3 endPos;
-    public float currentTime;
-    public float hitTime;
-    private GameObject activeTarget;
     private bool isHit;
     private int damage=0;
-    public bool isInvulnerability=false;
     // int invulnerabilityFrame=0;
     RaycastHit2D hit;
     RotateKidian rotateKidian;
     KidianController kidianController;
     
+    AudioScript audioScript;
     int ultCounter=0;
-    public bool canUlt=false;
-    private bool usedUltPrevious=false;
     void Start(){
         currentTime=0;
         hitTime=0;
@@ -62,16 +68,18 @@ public class SceneManagerMK2 : MonoBehaviour
         gravityLineRenderer.positionCount = 0;
         rotateKidian = kidianObj.GetComponent<RotateKidian>();
         kidianController = kidianObj.GetComponent<KidianController>();
+        audioScript = gameObject.GetComponent<AudioScript>();
+        pointerEventData = new PointerEventData(EventSystem.current);
     }
     void Update(){
         currentTime+=Time.deltaTime;
         switch (currentState)
         {
             case "Idle":{
-                if(Input.GetMouseButtonDown(0)){
+                if(Input.GetMouseButtonDown(0)&&!IsPointerOverUI()){
                     currentState="SkillReady";
                     currentTime=0;
-                }else if(Input.GetMouseButtonDown(1)&&canUlt){
+                }else if(Input.GetMouseButtonDown(1)&&canUlt&&!IsPointerOverUI()){
                     currentState="UltReady";
                     currentTime=0;
                 }
@@ -80,10 +88,12 @@ public class SceneManagerMK2 : MonoBehaviour
             case "SkillReady":{//스킬 차징 시전전
                 kidianController.chargeEffectPre.SetActive(true);
                 Time.timeScale = 0.025f;
+                //audioScript.ChangeBGMPitch(0.5f);
+                //maxSkillDistance=1f;
                 reflectRotationSpeedVector=Vector3.zero;
                 currentState="SkillReadyLoop";
                 currentTime=0;
-                if(usedUltPrevious){
+                if(usedUltPrevious&&isHardMode){
                     usedUltPrevious=false;
                     ultCounter=0;
                     UpdateUlt();
@@ -100,6 +110,7 @@ public class SceneManagerMK2 : MonoBehaviour
                     currentState="Skill";
                     currentTime=0;
                 }
+                //maxSkillDistance = Mathf.Clamp(maxSkillDistance+0.1f,0,maxMaxSkillDistance);
                 gravityLineRenderer.positionCount = 0;
                 
                 startPos=kidian.transform.position;
@@ -119,11 +130,13 @@ public class SceneManagerMK2 : MonoBehaviour
                     activeTarget.GetComponent<CapsuleCollider2D>().enabled = false;
                 }
                 Time.timeScale = 1f;
+                //audioScript.ChangeBGMPitch(1f);
                 greyScreen.SetActive(false);
                 oldReflectionDirection=reflectionDirection;
                 currentState="SkillLoop";
                 currentTime=0;
                 damage=1;
+                audioScript.PlayEffectSound();
                 SetAnimation("Fly");
                 rotateKidian.RotateToMouseInstant();
             }break;
@@ -158,10 +171,11 @@ public class SceneManagerMK2 : MonoBehaviour
                 }
                 isInvulnerability=true;
                 Time.timeScale = 0.025f;
+                //audioScript.ChangeBGMPitch(0.5f);
                 currentState="UltReadyLoop";
             }break;
             case"UltReadyLoop":{//궁 시전 준비비
-                if(Input.GetMouseButtonUp(1)){
+                if(Input.GetMouseButtonUp(1)&&!IsPointerOverUI()){
                     currentState="Ult";
                     currentTime=0;
                 }
@@ -175,6 +189,8 @@ public class SceneManagerMK2 : MonoBehaviour
             }break;
 
             case"Ult":{//궁 발사!
+                Time.timeScale = 1f;
+                //audioScript.ChangeBGMPitch(1f);
                 SetKidianTransparency(1f);
                 kidianController.chargeEffectPre.SetActive(false);
                 if(activeTarget!=null){
@@ -200,7 +216,7 @@ public class SceneManagerMK2 : MonoBehaviour
                 }
                 isInvulnerability=true;
                 // invulnerabilityFrame=0;
-                Time.timeScale = 1f;
+                audioScript.PlayEffectSound();
                 greyScreen.SetActive(false);
                 oldReflectionDirection=reflectionDirection;
                 currentState="UltLoop";
@@ -213,7 +229,8 @@ public class SceneManagerMK2 : MonoBehaviour
             }break;
 
             case"UltLoop":{//궁 발사!
-                Time.timeScale = 1f;
+                // Time.timeScale = 1f;
+                // //audioScript.ChangeBGMPitch(1f);
 
                 float deltaDistance = straightUltSpeed * Time.deltaTime;
                 Vector3 hitPoint;
@@ -242,8 +259,9 @@ public class SceneManagerMK2 : MonoBehaviour
                     kidianObj.transform.Rotate(0,0,90);
                 }
                 MoveKidian();
-                if(activeTarget!=null){
-                    activeTarget.GetComponent<MonsterScript>().TakeDamage(damage,-hit.normal);
+                //Debug.Log(activeTarget);
+                if(!ReferenceEquals(activeTarget,null)){
+                    activeTarget.GetComponent<MonsterScript>().TakeDamage(damage,-hit.normal,hit.point);
                     if(damage==2){//궁극기 사용용
                         UltControll(true);
                     }else{//일반 스킬 사용용
@@ -266,18 +284,21 @@ public class SceneManagerMK2 : MonoBehaviour
                 kidianController.chargeEffect.SetActive(false);
 
                 MoveKidian();
-                if(Input.GetMouseButtonDown(0)){
-                    currentState="SkillReady";
-                    currentTime=0;
-                }else if(Input.GetMouseButtonDown(1)&&canUlt){
+                if(Input.GetMouseButtonDown(0)&&!IsPointerOverUI()){
+                    if(!(isHardMode&&!isHit)){
+                        currentState="SkillReady";
+                        currentTime=0;
+                    }else{
+
+                    }
+                }else if(Input.GetMouseButtonDown(1)&&canUlt&&!IsPointerOverUI()){
                     currentState="UltReady";
                     currentTime=0;
                 }
                 rotateKidian.RotateAuto(reflectRotationSpeedVector.z*rotationSpeedMultiplier);
             }break;
             case "Dead":{
-                kidianObj.SetActive(false);
-
+                GameOver();
 
 
                 currentState="DeadLoop";
@@ -291,10 +312,21 @@ public class SceneManagerMK2 : MonoBehaviour
         }
     }
 
+    bool IsPointerOverUI()
+    {
+        // 마우스 위치 설정
+        pointerEventData.position = Input.mousePosition;
+        
+        // UI 그래픽 요소 검사
+        List<RaycastResult> results = new List<RaycastResult>();
+        uiRaycaster.Raycast(pointerEventData, results);
+        
+        return results.Count > 0; // UI 요소가 감지되면 true 반환
+    }
     private void UltControll(bool ultUsed)
     {
         //궁으로 죽이면 한번 더더
-        if(activeTarget.GetComponent<MonsterScript>().currentHealth<=0&&ultUsed){
+        if(activeTarget!=null&&activeTarget.GetComponent<MonsterScript>().currentHealth<=0&&ultUsed){
             ultCounter=8;
         }
         ultCounter+=damage;
@@ -374,5 +406,9 @@ public class SceneManagerMK2 : MonoBehaviour
         Color newColor = kidianObj.GetComponent<SpriteRenderer>().color;
         newColor.a = alpha;
         kidianObj.GetComponent<SpriteRenderer>().color = newColor;
+    }
+    public void GameOver(){
+        kidianObj.SetActive(false);
+        monsterController.SetActive(false);
     }
 }

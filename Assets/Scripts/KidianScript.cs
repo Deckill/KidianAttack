@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 
 public class KidianController : MonoBehaviour
@@ -12,9 +13,13 @@ public class KidianController : MonoBehaviour
     public GameObject kidianPosArrow;
 
     public int kidianHealth=3;
+    public GameObject kidianHeartPrefab;
+    public GameObject kidianHeartAnchor;
+    List<GameObject> kidianHearts = new List<GameObject>();
     void Start(){
         chargeEffect.SetActive(false);
         chargeEffectPre.SetActive(false);
+        UpdateKidianHealth();
     }
     void Update()
     {
@@ -29,9 +34,11 @@ public class KidianController : MonoBehaviour
             Debug.Log("타겟과 충돌!"+hit);
             sceneManagerMK2.isInvulnerability=true;
             kidianHealth-=1;
+            UpdateKidianHealth();
         }
-        if(gameObject.transform.position.y<0){
+        if(gameObject.transform.position.y<-3f){
             kidianHealth=0;
+            UpdateKidianHealth();
         }
         if(kidianHealth<=0){
             sceneManagerMK2.currentState="Dead";
@@ -65,6 +72,16 @@ public class KidianController : MonoBehaviour
         else
         {
             kidianPosArrow.SetActive(false);
+        }
+    }
+    void UpdateKidianHealth(){
+        for(int i = 0;i<kidianHearts.Count;i+=1){
+            Destroy(kidianHearts[i]);
+        }
+        kidianHearts.Clear();
+        for(int i = 0; i < kidianHealth;i+=1){
+            kidianHearts.Add(Instantiate(kidianHeartPrefab,kidianHeartAnchor.transform));
+            kidianHearts[i].transform.localPosition = new Vector3(100f*i,0,0);
         }
     }
 }

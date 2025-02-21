@@ -29,7 +29,6 @@ public class ChargeManager : MonoBehaviour
     private bool isClickable = true;
     private float reflectionTime = 0;
     GameObject activeTarget;
-    private bool isUltButtonClicked=false;
 
     void Start()
     {

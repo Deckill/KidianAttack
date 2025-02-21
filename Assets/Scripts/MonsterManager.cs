@@ -14,7 +14,11 @@ public class MonsterManager : MonoBehaviour
     public float bossTime=60f;
     float currentTime;
     public GameObject dmgEffectPrefab;
+    public List<Vector3> spawnAnchor;
     public GameObject monsterPosArrowPrefab;
+    public GameObject jibMunSeo;
+    public GameObject heartPrefab;
+    public SceneManagerMK2 sceneManagerMK2;
 
     // Start is called before the first frame update
     void Start()
@@ -30,7 +34,7 @@ public class MonsterManager : MonoBehaviour
             if(currentTime>a*Mathf.Exp(-1*b*Time.time)+c){
                 float randY = Random.Range(-1f, 1f)*gameObject.transform.position.y*2/3;
                 Vector3 extraVector = new Vector3(0, randY,2);
-                Instantiate(monsters[Random.Range(0,monsters.Count-1)],gameObject.transform.position+extraVector,quaternion.identity,gameObject.transform);
+                Instantiate(monsters[Random.Range(0,monsters.Count-1)],spawnAnchor[Random.Range(0,spawnAnchor.Count)] +extraVector,quaternion.identity,gameObject.transform);
                 currentTime=0;
             }
         }else{
