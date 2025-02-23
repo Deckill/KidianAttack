@@ -1,18 +1,22 @@
 using System.Collections;
 using System.Collections.Generic;
+using TMPro;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class MainMenuScript : MonoBehaviour
 {
-    public GameObject gameScreen;
-    public GameObject pauseScreen;
-    public GameObject WinScreen;
-    public GameObject LoseScreen;
-    float preTimeScale=1f;
+    public GameObject startGameScreen;
+    public GameObject tutorialMainScreen;
+    public List<GameObject> tutorialScreens;
+    public TMP_Text gameMode0Text;
+    public TMP_Text gameMode1Text;
+
     // Start is called before the first frame update
     void Start()
     {
-        
+        SwitchToScreen(null);
+        Time.timeScale=1f;
     }
 
     // Update is called once per frame
@@ -20,25 +24,29 @@ public class MainMenuScript : MonoBehaviour
     {
         
     }
-    public void PauseGame(){
-        if(Time.timeScale!=0f){
-            preTimeScale = Time.timeScale;
-        }
-        Time.timeScale = 0;
-        SwitchToScreen(pauseScreen);
-    }
-    public void ResumeGame(){
-        Time.timeScale = preTimeScale;
-        SwitchToScreen(gameScreen);
-    }
     public void SwitchToScreen(GameObject screen){
-        if(pauseScreen != screen){
-            gameScreen.SetActive(false);
+        startGameScreen.SetActive(false);
+        if(screen == startGameScreen){
+            gameMode0Text.text=gameMode0Text.text.Replace("{highScore0}",ScoreManager.LoadScore(0).ToString());
+            gameMode1Text.text=gameMode1Text.text.Replace("{highScore1}",ScoreManager.LoadScore(1).ToString());}
+        tutorialMainScreen.SetActive(false);
+        foreach (GameObject tutorialScreen in tutorialScreens){
+            tutorialScreen.SetActive(false);
+            if(screen==tutorialScreen){
+                tutorialMainScreen.SetActive(true);
+            }
         }
-        pauseScreen.SetActive(false);
-        WinScreen.SetActive(false);
-        LoseScreen.SetActive(false);
-
-        screen.SetActive(true);
+        
+        if(screen!=null){
+            screen.SetActive(true);
+            if(screen ==tutorialMainScreen){
+                tutorialScreens[0].SetActive(true);
+            }
+        }
+    }
+    public void StartGame(int gameMode){
+        PlayerPrefs.SetInt("GameMode", gameMode);
+        SceneManager.LoadScene("DefenseMode");
+        PlayerPrefs.Save();
     }
 }

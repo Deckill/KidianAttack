@@ -1,14 +1,17 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class AudioScript : MonoBehaviour
 {
     public static AudioScript instance;
+    public Slider effectSlider;
     public AudioSource effectSource;
-    public AudioSource backgroundSource;
     public List<AudioClip> effectClips = new List<AudioClip>();
     public List<AudioClip> damageClips = new List<AudioClip>();
+    public Slider backgroundSlider;
+    public AudioSource backgroundSource;
     public List<AudioClip> backgroundClips = new List<AudioClip>();
     
     private AudioClip lastClip; // 이전에 재생한 곡(중복 방지)
@@ -21,6 +24,10 @@ public class AudioScript : MonoBehaviour
 
     void Start()
     {
+        effectSlider.value = PlayerPrefs.GetFloat("EffectVolume",0.5f);
+        effectSource.volume = effectSlider.value;
+        backgroundSlider.value = PlayerPrefs.GetFloat("BGMVolume",0.5f);
+        backgroundSource.volume = backgroundSlider.value;
         if (backgroundClips.Count > 0)
         {
             StartCoroutine(PlayRandomMusic());
@@ -54,7 +61,7 @@ public class AudioScript : MonoBehaviour
 
     IEnumerator FadeIn(float duration = 1f)
     {
-        float targetVolume = 1f;
+        float targetVolume = backgroundSlider.value;
         backgroundSource.volume = 0;
         while (backgroundSource.volume < targetVolume)
         {
@@ -95,8 +102,12 @@ public class AudioScript : MonoBehaviour
     }
     public void ChangeEffectVolume(float volume){
         effectSource.volume = volume;
+        PlayerPrefs.SetFloat("EffectVolume", volume);
+        PlayerPrefs.Save();
     }
     public void ChangeBGMVolume(float volume){
         backgroundSource.volume = volume;
+        PlayerPrefs.SetFloat("BGMVolume", volume);
+        PlayerPrefs.Save();
     }
 }

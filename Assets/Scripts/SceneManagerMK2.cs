@@ -5,6 +5,7 @@ using Unity.VisualScripting;
 using UnityEngine.EventSystems;
 using UnityEngine;
 using UnityEngine.UI;
+using System.Resources;
 
 public class SceneManagerMK2 : MonoBehaviour
 {
@@ -19,14 +20,13 @@ public class SceneManagerMK2 : MonoBehaviour
     public GameObject monsterController;
     public LayerMask targetLayer;      // 타겟 레이어
     public GameObject activeTarget;
-    public MainMenuScript mainMenuScript;
+    public InGameMenuScript mainMenuScript;
     public GraphicRaycaster uiRaycaster; // UI의 GraphicRaycaster 연결 필요
     private PointerEventData pointerEventData;
     public float currentTime;
     public float hitTime;
     public string currentState;
 
-    public int score=0;
     public bool isInvulnerability=false;
 
     public bool isHardMode=false;
@@ -37,7 +37,7 @@ public class SceneManagerMK2 : MonoBehaviour
     private float straightUltSpeed = 150f;  // 직선 속도
     private float gravitySpeed = 15f;    // 반사 후 시작 속도
     private float gravity = -9.8f;      // 중력 가속도
-    private float maxSkillDistance = 15f;  
+    public float maxSkillDistance = 15f;  
     // public float maxMaxSkillDistance = 15f;  // 최대 거리
     private float maxUltDistance = 10000f;
 
@@ -52,14 +52,23 @@ public class SceneManagerMK2 : MonoBehaviour
     private Vector3 endPos;
     private bool isHit;
     private int damage=0;
-    // int invulnerabilityFrame=0;
+    int invulnerabilityFrame=0;
     RaycastHit2D hit;
     RotateKidian rotateKidian;
     KidianController kidianController;
+
+    public int ultScore=10;
     
     AudioScript audioScript;
     int ultCounter=0;
+    public InGameMenuScript inGameMenuScript;
+    public GameObject jibMunSeo;
     void Start(){
+        if(PlayerPrefs.GetInt("GameMode",0)==1){
+            isHardMode = true;
+        }else{
+            isHardMode=false;
+        }
         currentTime=0;
         hitTime=0;
         currentState="Idle";
@@ -93,12 +102,13 @@ public class SceneManagerMK2 : MonoBehaviour
                 reflectRotationSpeedVector=Vector3.zero;
                 currentState="SkillReadyLoop";
                 currentTime=0;
+                ultScore=10;
                 if(usedUltPrevious&&isHardMode){
                     usedUltPrevious=false;
                     ultCounter=0;
                     UpdateUlt();
                 }
-                if(activeTarget!=null){
+                if(activeTarget!=null&&activeTarget.GetComponent<MonsterScript>().isAlive){
                     activeTarget.GetComponent<CapsuleCollider2D>().enabled = true;
                 }
                 SetAnimation("Charge");
@@ -125,7 +135,7 @@ public class SceneManagerMK2 : MonoBehaviour
                 kidianController.chargeEffectPre.SetActive(false);
                 kidianController.chargeEffect.SetActive(true);
                 isInvulnerability=true;
-                // invulnerabilityFrame=0;
+                invulnerabilityFrame=0;
                 if(activeTarget!=null){
                     activeTarget.GetComponent<CapsuleCollider2D>().enabled = false;
                 }
@@ -175,7 +185,7 @@ public class SceneManagerMK2 : MonoBehaviour
                 currentState="UltReadyLoop";
             }break;
             case"UltReadyLoop":{//궁 시전 준비비
-                if(Input.GetMouseButtonUp(1)&&!IsPointerOverUI()){
+                if(Input.GetMouseButtonUp(1)||Input.GetMouseButtonUp(0)){
                     currentState="Ult";
                     currentTime=0;
                 }
@@ -193,7 +203,7 @@ public class SceneManagerMK2 : MonoBehaviour
                 //audioScript.ChangeBGMPitch(1f);
                 SetKidianTransparency(1f);
                 kidianController.chargeEffectPre.SetActive(false);
-                if(activeTarget!=null){
+                if(activeTarget!=null&&activeTarget.GetComponent<MonsterScript>().isAlive){
                     activeTarget.GetComponent<CapsuleCollider2D>().enabled = false;
                 }
                 GameObject ultWindEffect = Instantiate(kidianController.ultWindEffect);
@@ -215,7 +225,7 @@ public class SceneManagerMK2 : MonoBehaviour
                     ultEffect.transform.localScale = new Vector3(3,15f,1);
                 }
                 isInvulnerability=true;
-                // invulnerabilityFrame=0;
+                invulnerabilityFrame=0;
                 audioScript.PlayEffectSound();
                 greyScreen.SetActive(false);
                 oldReflectionDirection=reflectionDirection;
@@ -261,10 +271,17 @@ public class SceneManagerMK2 : MonoBehaviour
                 MoveKidian();
                 //Debug.Log(activeTarget);
                 if(!ReferenceEquals(activeTarget,null)){
-                    activeTarget.GetComponent<MonsterScript>().TakeDamage(damage,-hit.normal,hit.point);
+                    try{
+                        activeTarget.GetComponent<MonsterScript>().TakeDamage(damage,-hit.normal,hit.point);
+                    }catch{
+                        activeTarget=null;
+                    }
                     if(damage==2){//궁극기 사용용
+                        inGameMenuScript.AddScore(ultScore);
+                        ultScore+=10;
                         UltControll(true);
                     }else{//일반 스킬 사용용
+                        inGameMenuScript.AddScore(10);
                         UltControll(false);
                     }
                 }
@@ -277,10 +294,10 @@ public class SceneManagerMK2 : MonoBehaviour
                 // if(currentTime>invulnerabilityTime){
                 //     isInvulnerability=false;
                 // }
-                // invulnerabilityFrame+=1;
-                // if(invulnerabilityFrame==18){
-                    // isInvulnerability=false;
-                // }
+                invulnerabilityFrame+=1;
+                if(invulnerabilityFrame==8){
+                    isInvulnerability=false;
+                }
                 kidianController.chargeEffect.SetActive(false);
 
                 MoveKidian();
@@ -408,7 +425,15 @@ public class SceneManagerMK2 : MonoBehaviour
         kidianObj.GetComponent<SpriteRenderer>().color = newColor;
     }
     public void GameOver(){
+        Destroy(jibMunSeo);
         kidianObj.SetActive(false);
         monsterController.SetActive(false);
+        inGameMenuScript.ShowFailScreen();
+    }
+    public void UltButton(){
+        if(canUlt&&currentState=="ReflectedLoop"){
+            currentState="UltReady";
+            currentTime=0;
+        }
     }
 }

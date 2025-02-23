@@ -14,35 +14,40 @@ public class MonsterScript : MonoBehaviour
     public float hitSpeed=3f;
     public float hitDeccelerate=1f;
     public int jibMunSeoDmg=1;
+    public float healthAdj=1;
+    public float speedAdj=1;
     public GameObject target;
     public Vector3 baseVelocity;
     public AudioScript audioScript;
     private Vector3 currentVelocity;
     private Vector3 extraVelocity;
-    private bool isAlive=true;
+    public bool isAlive=true;
     private GameObject monsterPosArrow;
     private GameObject jibMunSeo;
     private GameObject heartPrefab;
     private List<GameObject> hearts=new List<GameObject>();
-    public float jubMunSeoFollowRadius=20f;
+    public float jubMunSeoFollowRadius=35f;
     private float rotationDeathSpeed=0;
+    MonsterManager monsterManager;
     
     // Start is called before the first frame update
     void Start()
     {
+        monsterManager = gameObject.transform.parent.GetComponent<MonsterManager>();
+        AdjustDifficulty();
         target = gameObject.transform.parent.gameObject;
         currentHealth=maxHealth;
         // 기본 왼쪽 이동 속도 설정
         baseVelocity = (target.transform.position-gameObject.transform.position).normalized * baseSpeed;
         currentVelocity = baseVelocity;
-        monsterPosArrow= Instantiate(gameObject.transform.parent.GetComponent<MonsterManager>().monsterPosArrowPrefab,gameObject.transform);
-        jibMunSeo=gameObject.transform.parent.GetComponent<MonsterManager>().jibMunSeo;
-        heartPrefab = gameObject.transform.parent.GetComponent<MonsterManager>().heartPrefab;
+        monsterPosArrow= Instantiate(monsterManager.monsterPosArrowPrefab,gameObject.transform);
+        jibMunSeo=monsterManager.jibMunSeo;
+        heartPrefab = monsterManager.heartPrefab;
         for(int i=0;i<maxHealth;i+=1){
             
             hearts.Add(Instantiate(heartPrefab,gameObject.transform));
         }
-        audioScript = gameObject.transform.parent.GetComponent<MonsterManager>().sceneManagerMK2.GetComponent<AudioScript>();
+        audioScript = monsterManager.sceneManagerMK2.GetComponent<AudioScript>();
         UpdateHeartPos(Random.insideUnitCircle);
     }
 
@@ -63,7 +68,7 @@ public class MonsterScript : MonoBehaviour
             if(gameObject.transform.position.y>30&&extraVelocity.y >0){
                 extraVelocity*=-1;
             }
-            if(Vector2.Distance(gameObject.transform.position,jibMunSeo.transform.position)<3f){
+            if(Vector2.Distance(gameObject.transform.position,jibMunSeo.transform.position)<2f){
                 jibMunSeo.GetComponent<JibMunSeoScript>().TakeDamage(jibMunSeoDmg);
                 Death();
             }
@@ -78,7 +83,7 @@ public class MonsterScript : MonoBehaviour
             Death();
         }
         if(Vector2.Distance(gameObject.transform.position,jibMunSeo.transform.position)<jubMunSeoFollowRadius){
-            baseVelocity = (jibMunSeo.transform.position-gameObject.transform.position).normalized*baseSpeed/3f;
+            baseVelocity = (jibMunSeo.transform.position-gameObject.transform.position).normalized*baseSpeed/5f;
         }
         PositionArrow();
     }
@@ -94,7 +99,7 @@ public class MonsterScript : MonoBehaviour
         currentHealth-=damage;
         currentHealth = Mathf.Clamp(currentHealth, 0,maxHealth);
         UpdateHeartPos(normalDirection);
-        Destroy(Instantiate(gameObject.transform.parent.GetComponent<MonsterManager>().dmgEffectPrefab,gameObject.transform.position,quaternion.identity),1f);
+        Destroy(Instantiate(monsterManager.dmgEffectPrefab,gameObject.transform.position,quaternion.identity),1f);
         if(currentHealth<=0){
             rotationDeathSpeed=Vector3.Cross(normalDirection,(hitPoint-gameObject.transform.position)).z/gameObject.transform.localScale.x;
             rotationDeathSpeed=Mathf.Clamp(rotationDeathSpeed, 0,1f);
@@ -114,6 +119,12 @@ public class MonsterScript : MonoBehaviour
             hearts.RemoveAt(i);
             // hearts[i].SetActive(false);
         }
+    }
+    public void AdjustDifficulty(){
+        float amount = monsterManager.monsterAdjustment;
+        maxHealth=maxHealth+(int)(maxHealth*amount*healthAdj);
+        baseSpeed =baseSpeed+ (baseSpeed*amount*speedAdj);
+
     }
     public void PositionArrow(){
         
@@ -146,13 +157,13 @@ public class MonsterScript : MonoBehaviour
         }
     }
     public void Death(){
-        // if(gameObject==gameObject.transform.parent.GetComponent<MonsterManager>().sceneManagerMK2.activeTarget){
-        //     gameObject.transform.parent.GetComponent<MonsterManager>().sceneManagerMK2.activeTarget=null;
+        // if(gameObject==monsterManager.sceneManagerMK2.activeTarget){
+        //     monsterManager.sceneManagerMK2.activeTarget=null;
         // }
         gameObject.GetComponent<CapsuleCollider2D>().enabled = false;
         jibMunSeoDmg=0;
         //enabled=false;
-        //gameObject.transform.parent.GetComponent<MonsterManager>().sceneManagerMK2.activeTarget=null;
+        //monsterManager.sceneManagerMK2.activeTarget=null;
         Destroy(gameObject,0.1f);
         
     }

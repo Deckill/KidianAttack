@@ -124,15 +124,15 @@ ScriptedImporter:
   animatedSpriteImportData:
   - name: Dilogue
     originalName: 
-    pivot: {x: 0.5, y: 0.48387095}
+    pivot: {x: 0.5, y: 0.5}
     alignment: 9
     border: {x: 0, y: 0, z: 0, w: 0}
     rect:
       serializedVersion: 2
       x: 4
       y: 4
-      width: 240
-      height: 124
+      width: 360
+      height: 128
     spriteID: 7347baa81c9b0524080e45cd9c3273c1
     spriteBone: []
     spriteOutline: []
@@ -155,10 +155,10 @@ ScriptedImporter:
       frameIndex: 0
       additiveSortOrder: 0
       cellRect:
-        x: 8
-        y: 4
-        width: 240
-        height: 124
+        x: 12
+        y: 0
+        width: 360
+        height: 128
       spriteId: 7347baa81c9b0524080e45cd9c3273c1
     linkedCells: []
     parentIndex: -1
@@ -226,5 +226,5 @@ ScriptedImporter:
   generatePhysicsShape: 0
   secondarySpriteTextures: []
   spritePackingTag: 
-  canvasSize: {x: 256, y: 128}
-  previousTextureSize: {x: 256, y: 256}
+  canvasSize: {x: 384, y: 128}
+  previousTextureSize: {x: 512, y: 256}

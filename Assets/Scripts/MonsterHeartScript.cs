@@ -28,6 +28,7 @@ public class MonsterHeartScript : MonoBehaviour
 
     public void FlyAway(Vector3 direction)
     {
+        gameObject.GetComponent<SpriteRenderer>().color=Color.black;
         gameObject.transform.SetParent(null);
         isFlying=true;
         currentVelocity = (Random.insideUnitCircle+(Vector2)direction)*10;
