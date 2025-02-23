@@ -97,7 +97,7 @@ public class SceneManagerMK2 : MonoBehaviour
             case "SkillReady":{//스킬 차징 시전전
                 kidianController.chargeEffectPre.SetActive(true);
                 Time.timeScale = 0.025f;
-                isInvulnerability=true;
+                //isInvulnerability=true;
                 //audioScript.ChangeBGMPitch(0.5f);
                 //maxSkillDistance=1f;
                 reflectRotationSpeedVector=Vector3.zero;
@@ -117,13 +117,14 @@ public class SceneManagerMK2 : MonoBehaviour
 
             case "SkillReadyLoop":{//스킬 차징 중
                 MoveKidian();
-                if(Vector2.Distance(Camera.main.ScreenToWorldPoint(Input.mousePosition),kidian.transform.position)<0.7f){
+                if(Vector2.Distance(Camera.main.ScreenToWorldPoint(Input.mousePosition),kidianObj.transform.position)<0.7f){
                     gravityLineRenderer.positionCount = 0;
                     startPos=kidian.transform.position;
                     DrawStraightTrajectory(startPos,mousePos,0);
                     //DrawGravityTrajectory();
                     if(Input.GetMouseButtonUp(0)){
-                        currentState="ReflectedLoop";
+                        //isInvulnerability=false;
+                        currentState="PreviousReflectedLoop"; 
                         greyScreen.SetActive(false);
                         Time.timeScale=1;
                         //currentTime=0;
@@ -323,6 +324,26 @@ public class SceneManagerMK2 : MonoBehaviour
                     }else{
 
                     }
+                }else if(Input.GetMouseButtonDown(1)&&canUlt&&!IsPointerOverUI()){
+                    currentState="UltReady";
+                    currentTime=0;
+                }
+                rotateKidian.RotateAuto(reflectRotationSpeedVector.z*rotationSpeedMultiplier);
+            }break;
+            case"PreviousReflectedLoop":{//반사 또는 스킬궁 끝난 후에 일어나는 일 루프프
+                // if(currentTime>invulnerabilityTime){
+                //     isInvulnerability=false;
+                // }
+                // invulnerabilityFrame+=1;
+                // if(invulnerabilityFrame==8){
+                //      isInvulnerability=false;
+                // }
+                kidianController.chargeEffect.SetActive(false);
+
+                MoveKidian();
+                if(Input.GetMouseButtonDown(0)&&!IsPointerOverUI()){
+                    currentState="SkillReady";
+                    //currentTime=0;
                 }else if(Input.GetMouseButtonDown(1)&&canUlt&&!IsPointerOverUI()){
                     currentState="UltReady";
                     currentTime=0;
