@@ -13,6 +13,7 @@ public class MonsterManager : MonoBehaviour
     public float c=1;
     public float bossTime=600000f;
     float currentTime;
+    float spawnTime;
     public GameObject dmgEffectPrefab;
     public List<Vector3> spawnAnchor;
     public GameObject monsterPosArrowPrefab;
@@ -24,24 +25,26 @@ public class MonsterManager : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        currentTime=100f;
+        spawnTime=100f;
+        currentTime=0f;
     }
 
     // Update is called once per frame
     void Update()
     {
         currentTime+=Time.deltaTime;
-        if(Time.time<bossTime){
+        spawnTime+=Time.deltaTime;
+        if(currentTime<bossTime){
             if(PlayerPrefs.GetInt("GameMode")==0){
-                monsterAdjustment=1.8f*Mathf.Exp(0.007f*Time.time)-1.8f;
+                monsterAdjustment=1.8f*Mathf.Exp(0.007f*currentTime)-1.8f;
             }else if(PlayerPrefs.GetInt("GameMode")==1){
-                monsterAdjustment=1.6f*Mathf.Exp(0.012f*Time.time)-1.6f;
+                monsterAdjustment=1.6f*Mathf.Exp(0.012f*currentTime)-1.6f;
             }
-            if(currentTime>a*Mathf.Exp(-1*b*Time.time)+c){
+            if(spawnTime>a*Mathf.Exp(-1*b*currentTime)+c){
                 float randY = Random.Range(-1f, 1f)*gameObject.transform.position.y*2/3;
                 Vector3 extraVector = new Vector3(0, randY,2);
                 Instantiate(monsters[Random.Range(0,monsters.Count-1)],spawnAnchor[Random.Range(0,spawnAnchor.Count)] +extraVector,quaternion.identity,gameObject.transform);
-                currentTime=0;
+                spawnTime=0;
             }
         }else{
 

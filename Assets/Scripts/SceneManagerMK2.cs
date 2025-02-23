@@ -97,6 +97,7 @@ public class SceneManagerMK2 : MonoBehaviour
             case "SkillReady":{//스킬 차징 시전전
                 kidianController.chargeEffectPre.SetActive(true);
                 Time.timeScale = 0.025f;
+                isInvulnerability=true;
                 //audioScript.ChangeBGMPitch(0.5f);
                 //maxSkillDistance=1f;
                 reflectRotationSpeedVector=Vector3.zero;
@@ -285,7 +286,6 @@ public class SceneManagerMK2 : MonoBehaviour
                         UltControll(false);
                     }
                 }
-                isInvulnerability=false;
                 currentState="ReflectedLoop";
                 currentTime=0;
             }break;
