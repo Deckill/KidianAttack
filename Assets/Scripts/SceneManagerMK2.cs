@@ -102,7 +102,7 @@ public class SceneManagerMK2 : MonoBehaviour
                 //maxSkillDistance=1f;
                 reflectRotationSpeedVector=Vector3.zero;
                 currentState="SkillReadyLoop";
-                currentTime=0;
+                //currentTime=0;
                 ultScore=10;
                 if(usedUltPrevious&&isHardMode){
                     usedUltPrevious=false;
@@ -117,19 +117,34 @@ public class SceneManagerMK2 : MonoBehaviour
 
             case "SkillReadyLoop":{//스킬 차징 중
                 MoveKidian();
-                if(Input.GetMouseButtonUp(0)){
-                    currentState="Skill";
-                    currentTime=0;
+                if(Vector2.Distance(Camera.main.ScreenToWorldPoint(Input.mousePosition),kidian.transform.position)<0.7f){
+                    gravityLineRenderer.positionCount = 0;
+                    startPos=kidian.transform.position;
+                    DrawStraightTrajectory(startPos,mousePos,0);
+                    //DrawGravityTrajectory();
+                    if(Input.GetMouseButtonUp(0)){
+                        currentState="ReflectedLoop";
+                        greyScreen.SetActive(false);
+                        Time.timeScale=1;
+                        //currentTime=0;
+                    }
+                }else{
+                    if(Input.GetMouseButtonUp(0)){
+                        
+                        currentState="Skill";
+                        currentTime=0;
+                    }
+                    //maxSkillDistance = Mathf.Clamp(maxSkillDistance+0.1f,0,maxMaxSkillDistance);
+                    gravityLineRenderer.positionCount = 0;
+                    
+                    startPos=kidian.transform.position;
+                    mousePos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
+                    DrawStraightTrajectory(startPos,mousePos,maxSkillDistance);
+                    
+                    DrawGravityTrajectory();
+                    rotateKidian.RotateToMouse();
                 }
-                //maxSkillDistance = Mathf.Clamp(maxSkillDistance+0.1f,0,maxMaxSkillDistance);
-                gravityLineRenderer.positionCount = 0;
                 
-                startPos=kidian.transform.position;
-                mousePos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
-                DrawStraightTrajectory(startPos,mousePos,maxSkillDistance);
-                
-                DrawGravityTrajectory();
-                rotateKidian.RotateToMouse();
             }break;
 
             case"Skill":{//스킬 발사! 직선선
@@ -304,7 +319,7 @@ public class SceneManagerMK2 : MonoBehaviour
                 if(Input.GetMouseButtonDown(0)&&!IsPointerOverUI()){
                     if(!(isHardMode&&!isHit)){
                         currentState="SkillReady";
-                        currentTime=0;
+                        //currentTime=0;
                     }else{
 
                     }
