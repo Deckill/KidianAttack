@@ -98,7 +98,9 @@ public class SceneManagerMK2 : MonoBehaviour
                 kidianController.chargeEffectPre.SetActive(true);
                 Time.timeScale = 0.025f;
                 //isInvulnerability=true;
-                //audioScript.ChangeBGMPitch(0.5f);
+                if(PlayerPrefs.GetInt("BGMSpeed")==1){
+                    audioScript.ChangeBGMPitch(0.5f);
+                }
                 //maxSkillDistance=1f;
                 reflectRotationSpeedVector=Vector3.zero;
                 currentState="SkillReadyLoop";
@@ -157,7 +159,7 @@ public class SceneManagerMK2 : MonoBehaviour
                     activeTarget.GetComponent<CapsuleCollider2D>().enabled = false;
                 }
                 Time.timeScale = 1f;
-                //audioScript.ChangeBGMPitch(1f);
+                audioScript.ChangeBGMPitch(1f);
                 greyScreen.SetActive(false);
                 oldReflectionDirection=reflectionDirection;
                 currentState="SkillLoop";
@@ -198,7 +200,9 @@ public class SceneManagerMK2 : MonoBehaviour
                 }
                 isInvulnerability=true;
                 Time.timeScale = 0.025f;
-                //audioScript.ChangeBGMPitch(0.5f);
+                if(PlayerPrefs.GetInt("BGMSpeed")==1){
+                    audioScript.ChangeBGMPitch(0.5f);
+                }
                 currentState="UltReadyLoop";
             }break;
             case"UltReadyLoop":{//궁 시전 준비비
@@ -217,7 +221,7 @@ public class SceneManagerMK2 : MonoBehaviour
 
             case"Ult":{//궁 발사!
                 Time.timeScale = 1f;
-                //audioScript.ChangeBGMPitch(1f);
+                audioScript.ChangeBGMPitch(1f);
                 SetKidianTransparency(1f);
                 kidianController.chargeEffectPre.SetActive(false);
                 if(activeTarget!=null&&activeTarget.GetComponent<MonsterScript>().isAlive){
@@ -257,7 +261,7 @@ public class SceneManagerMK2 : MonoBehaviour
 
             case"UltLoop":{//궁 발사!
                 // Time.timeScale = 1f;
-                // //audioScript.ChangeBGMPitch(1f);
+                audioScript.ChangeBGMPitch(1f);
 
                 float deltaDistance = straightUltSpeed * Time.deltaTime;
                 Vector3 hitPoint;

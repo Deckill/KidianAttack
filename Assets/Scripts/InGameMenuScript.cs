@@ -13,6 +13,7 @@ public class InGameMenuScript : MonoBehaviour
     public GameObject loseScreen;
     public GameObject rangeCircle;
     public Toggle drawCircleToggle;
+    public Toggle bgmSppedToggle;
     public GameObject currentScoreTMPObj;
     public GameObject failScoreTMPObj;
     public GameObject successScoreTMPObj;
@@ -26,6 +27,7 @@ public class InGameMenuScript : MonoBehaviour
         initialScoreText = currentScoreTMPObj.GetComponent<TextMeshProUGUI>().text;
         drawCircleToggle.isOn=(PlayerPrefs.GetInt("DrawCircleBool",1)==1);
         rangeCircle.SetActive((PlayerPrefs.GetInt("DrawCircleBool",1)==1));
+        bgmSppedToggle.isOn = (PlayerPrefs.GetInt("BGMSpeed",0)==1);
         Time.timeScale=1f;
         UpdateCurrentScore();
     }
@@ -70,6 +72,16 @@ public class InGameMenuScript : MonoBehaviour
                 PlayerPrefs.SetInt("DrawCircleBool",1);            
             }else{
                 PlayerPrefs.SetInt("DrawCircleBool",0);
+            }
+            PlayerPrefs.Save();
+        }
+    }
+    public void ToggleBGMSpeed(){
+        if(bgmSppedToggle.IsActive()){
+            if (bgmSppedToggle.isOn){
+                PlayerPrefs.SetInt("BGMSpeed",1);        
+            }else{
+                PlayerPrefs.SetInt("BGMSpeed",0);
             }
             PlayerPrefs.Save();
         }
